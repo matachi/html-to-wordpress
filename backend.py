@@ -8,6 +8,7 @@ from urllib import urlopen
 from urlparse import urlparse, urlunsplit
 from bs4 import BeautifulSoup, Tag
 import requests
+import sys
 
 
 config = ConfigParser()
@@ -187,3 +188,7 @@ def post(title, url, **kwargs):
     wordpress_title, wordpress_page_url = make_wordpress_page(title, content,
                                                               published)
     return content, wordpress_title, wordpress_page_url
+
+
+if __name__ == '__main__':
+    post(sys.argv[1], sys.argv[2])
