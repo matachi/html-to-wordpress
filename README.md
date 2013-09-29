@@ -3,7 +3,7 @@ HTML To WordPress
 
 Convert simple HTML pages and make WordPress pages of them.
 
-Author: Daniel 'MaTachi' Jonsson
+Author: Daniel 'MaTachi' Jonsson  
 License: [MIT License](LICENSE)
 
 Requirements
@@ -33,9 +33,10 @@ conversion and show a link to the newly created WordPress page.
 
 ### 2. Configuration
 
-To make this work, you will need to specify some data inside <config.ini>.
-Necessary data is login details to the FTP, URL to the WordPress root and login
-details to the WordPress blog.
+To make this work, you will need to specify some data inside
+[config.ini](config.ini).  Necessary data is login details to the FTP, URL to
+the WordPress root and login details to the WordPress blog.
+
 
 ### 3. Back end
 
