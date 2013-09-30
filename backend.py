@@ -18,12 +18,12 @@ config.read(os.path.join(os.path.dirname(os.path.realpath(__file__)),
 
 def parse(url, **kwargs):
     """Parse the HTML page and return a tuple of the formatted content and the
-    image links.
+    local file links.
 
     :param url: The path to the HTML page.
     :type url: str.
     :param kwargs:
-    :return: tuple -- the page content as a str and image image links as a list
+    :return: tuple -- the page content as a str and local file links as a list
     of str
     """
     soup = BeautifulSoup(urlopen(url))
@@ -36,14 +36,22 @@ def parse(url, **kwargs):
                 p = a.parent.parent.parent.parent
                 p.parent.contents.remove(p)
 
-    # Update image src urls
-    images = []
+    # Update file urls
+    files = []
     for img in soup.find_all('img'):
         src = img['src']
         img['src'] = os.path.join(config.get('wordpress', 'url'),
                                   'wp-content/uploads/old_site/{}'.format(
                                       img['src']))
-        images.append({'old': src, 'new': img['src']})
+        files.append({'old': src, 'new': img['src']})
+    for a in soup.find_all('a'):
+        old = a['href']
+        if old.split('.')[-1] != 'pdf':
+            continue
+        a['href'] = os.path.join(config.get('wordpress', 'url'),
+                                 'wp-content/uploads/old_site/{}'.format(
+                                     a['href']))
+        files.append({'old': old, 'new': a['href']})
 
     # Get the content inside the body tag and the js scripts
     body_content = ''.join(
@@ -56,7 +64,7 @@ def parse(url, **kwargs):
     content = u'[raw]{}[/raw]'.format(content)
     content = BeautifulSoup(content).prettify()
 
-    return content, images
+    return content, files
 
 
 def get_tmp_directory_path():
@@ -73,30 +81,36 @@ def get_tmp_directory_path():
     return tmp_directory
 
 
-def download_images(url, images):
-    """Download the specified images. Use the url to determine the domain.
+def download_files(url, files):
+    """Download the specified files. Use the url to determine the domain.
 
     :param url: The URL containing the site's domain.
-    :param images: List of directories containing the image paths.
+    :param files: List of directories containing the file paths.
     """
     tmp_dir = get_tmp_directory_path()
     scheme, netloc = urlparse(url).scheme, urlparse(url).netloc
-    for that in images:
-        # Construct the url to the image
-        img_url = urlparse(that['old'])
-        img_url_path = img_url.path
-        img_url = urlunsplit([scheme, netloc, img_url_path, '', ''])
-        subdirectory = os.path.dirname(img_url_path)
-        # Construct a local path inside the tmp dir using the subdirectory path
+    for that in files:
+        # Construct the absolute url to the file
+        file_url = urlparse(that['old'])
+        file_url_path = file_url.path
+        file_url = urlunsplit([scheme, netloc, file_url_path, '', ''])
+
+        # The name of the subdir it will be stored in
+        subdirectory = os.path.dirname(file_url_path)
+
+        # Construct a path to where the file should be stored locally
         local_folder = os.path.join(tmp_dir, subdirectory)
+
         # Create the subdirectory structure if it doesn't exist
         if not os.path.exists(local_folder):
             os.makedirs(local_folder)
-            # Construct the local file path
-        local_file_path = os.path.join(tmp_dir, img_url_path)
-        # Save the image file to the path if it doesn't already exist
+
+        # Construct the local file path to the file
+        local_file_path = os.path.join(tmp_dir, file_url_path)
+
+        # Save the file to the path if it doesn't already exist
         if not os.path.isfile(local_file_path):
-            data = urlopen(img_url).read()
+            data = urlopen(file_url).read()
             with file(local_file_path, 'wb') as f:
                 f.write(data)
 
@@ -181,8 +195,8 @@ def post(title, url, **kwargs):
     :return: tuple -- of the formatted content, the returned title and the new
     url
     """
-    content, images = parse(url, **kwargs)
-    download_images(url, images)
+    content, files = parse(url, **kwargs)
+    download_files(url, files)
     upload_files()
     published = kwargs.get('published', False)
     wordpress_title, wordpress_page_url = make_wordpress_page(title, content,
