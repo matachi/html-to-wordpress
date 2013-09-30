@@ -4,6 +4,7 @@ from ftplib import FTP
 import ftplib
 import json
 import os
+import re
 from urllib import urlopen
 from urlparse import urlparse, urlunsplit
 from bs4 import BeautifulSoup, Tag
@@ -61,8 +62,10 @@ def parse(url, **kwargs):
     # Put the body content and scripts together
     content = u'\n'.join([unicode(x) for x in scripts])
     content = unicode(content) + unicode(body_content)
-    content = u'[raw]{}[/raw]'.format(content)
+    content = u'[raw]<div class="old_site">{}</div>[/raw]'.format(content)
     content = BeautifulSoup(content).prettify()
+    # Remove redundant br closing tags
+    content = re.sub(r'</br>', '', content)
 
     return content, files
 
