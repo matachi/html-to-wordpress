@@ -13,23 +13,26 @@ def index():
         result = post(request.form['title'],
                       request.form['url'],
                       remove_new_window_link=remove_new_window_link,
-                      publish=publish)
+                      publish=publish,
+                      delete_links=request.form['delete_links'])
         template = render_template('posted.html', content=result[0],
                                    title=result[1], link=result[2])
         response = make_response(template)
         response.set_cookie('remove_new_window_link',
                             'true' if remove_new_window_link else 'false')
         response.set_cookie('publish', 'true' if publish else 'false')
+        response.set_cookie('delete_links', request.form['delete_links'])
         return response
 
     elif request.method == 'GET':
         publish = 'true' == request.cookies.get('publish')
         remove_new_window_link = 'true' == request.cookies.get(
             'remove_new_window_link')
-        print(publish)
+        delete_links = request.cookies.get('delete_links', '')
         return render_template('index.html', publish=publish,
-                               remove_new_window_link=remove_new_window_link)
+                               remove_new_window_link=remove_new_window_link,
+                               delete_links=delete_links)
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

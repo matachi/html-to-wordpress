@@ -21,6 +21,11 @@
       <p class="help-block">Alternativet är att sidan får statusen "Utkast".</p>
     </div>
     <div class="form-group">
+      <label for="delete_links">Radera länkar till</label>
+      <input name="delete_links" type="text" class="form-control" id="delete_links" placeholder="Lista filnamn på undersidor som ska raderas" value="{{ delete_links }}">
+      <p class="help-block">Separera filnamnen med kommetecken. Exempel: index.htm, page.htm</p>
+    </div>
+    <div class="form-group">
       <label for="remove_new_window_link">
         <input type="checkbox" id="remove_new_window_link" name="remove_new_window_link" value="true"{% if remove_new_window_link %} checked{% endif %}> Ta bort "Öppna sidan i ett nytt fönster"
       </label>

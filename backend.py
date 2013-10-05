@@ -37,6 +37,15 @@ def parse(url, **kwargs):
                 p = a.parent.parent.parent.parent
                 p.parent.contents.remove(p)
 
+    if 'delete_links' in kwargs:
+        links = soup.find_all('a')
+        for page_to_delete in [x.strip() for x in
+                               kwargs['delete_links'].split(',')]:
+            for link in links:
+                filename = os.path.basename(link['href'])
+                if filename == page_to_delete:
+                    link.parent.parent.contents.remove(link.parent)
+
     # Update file urls
     files = []
     for img in soup.find_all('img'):
@@ -156,15 +165,15 @@ def upload_files():
     ftp.quit()
 
 
-def make_wordpress_page(title, content, published):
+def make_wordpress_page(title, content, publish):
     """Make a page on the WordPress blog.
 
     :param title: The page's title.
     :type title: str
     :param content: The page's content.
     :type content: str
-    :param published: If it should be marked as published.
-    :param published: bool
+    :param publish: If it should be marked as published.
+    :param publish: bool
     :return: tuple -- of str title and str page link.
     :rtype: tuple
     """
@@ -175,7 +184,7 @@ def make_wordpress_page(title, content, published):
         'title': title,
         'type': 'page',
         'content_raw': content,
-        'status': 'published' if published else 'draft',
+        'status': 'publish' if publish else 'draft',
     }
     headers = {
         'Accept': 'application/json',
@@ -201,11 +210,11 @@ def post(title, url, **kwargs):
     content, files = parse(url, **kwargs)
     download_files(url, files)
     upload_files()
-    published = kwargs.get('published', False)
+    publish = kwargs.get('publish', False)
     wordpress_title, wordpress_page_url = make_wordpress_page(title, content,
-                                                              published)
+                                                              publish)
     return content, wordpress_title, wordpress_page_url
 
 
 if __name__ == '__main__':
-    post(sys.argv[1], sys.argv[2])
+    post(sys.argv[1], sys.argv[2], delete_links='')
