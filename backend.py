@@ -50,6 +50,8 @@ def parse(url, **kwargs):
     files = []
     for img in soup.find_all('img'):
         src = img['src']
+        img['style'] = 'width: {}px; height: {}px;'.format(img['width'],
+                                                           img['height'])
         img['src'] = os.path.join(config.get('wordpress', 'url'),
                                   'wp-content/uploads/old_site/{}'.format(
                                       img['src']))
