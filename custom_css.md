@@ -2,6 +2,7 @@
 
 ```css
 .old_site table {
+  background-color: white;
   margin: 0 auto;
 }
 .old_site td {
@@ -17,6 +18,9 @@
   line-height: 14px;
   margin-bottom: 16px;
 }
+.old_site b, .old_site strong {
+  font-weight: bold;
+}
 .old_site ol, .old_site ul {
   padding-left: 40px;
   counter-reset: li;
@@ -28,14 +32,15 @@
 .old_site ol > li:before {
   content:counter(li); /* Use the counter as content */
   counter-increment:li; /* Increment the counter by 1 */
+  top: -3px;
 }
 .old_site ul > li:before {
   content: '•';
+  top: -5px;
 }
 .old_site ol > li:before, .old_site ul > li:before {
   font-size: 20px;
   left: -30px;
-  top: -3px;
   position: absolute;
   width: 20px;
   text-align: right;

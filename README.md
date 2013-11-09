@@ -17,9 +17,10 @@ $ pip install Flask beautifulsoup4 requests
 
 It's recommended to use a virtualenv.
 
-The WordPress plugin [JSON REST
-API](http://wordpress.org/plugins/json-rest-api/) is also needed for this to
-work.
+Either the WordPress plugin [JSON REST
+API](http://wordpress.org/plugins/json-rest-api/) or the modified plugin
+[JSON API](https://github.com/Achillefs/wp-json-api) (with support for making
+posts) is also needed for this to work.
 
 What the program does
 ---------------------

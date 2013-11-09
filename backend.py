@@ -30,7 +30,7 @@ def parse(url, **kwargs):
     soup = BeautifulSoup(urlopen(url))
 
     # Special thing for http://andersj.se
-    if 'remove_new_window_link' in kwargs and kwargs['remove_new_window_link']:
+    if getattr(kwargs, 'remove_new_window_link', False):
         page = url.split('/')[-1]
         for a in soup.find_all('a'):
             if page == a['href']:
@@ -179,23 +179,52 @@ def make_wordpress_page(title, content, publish):
     :return: tuple -- of str title and str page link.
     :rtype: tuple
     """
-    url = os.path.join(config.get('wordpress', 'url'), 'wp-json.php/posts')
-    auth = b64encode('{}:{}'.format(config.get('wordpress', 'username'),
-                                    config.get('wordpress', 'password')))
-    payload = {
-        'title': title,
-        'type': 'page',
-        'content_raw': content,
-        'status': 'publish' if publish else 'draft',
-    }
-    headers = {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': 'Basic {}'.format(auth),
-    }
-    r = requests.post(url, data=json.dumps(payload), headers=headers)
-    response = json.loads(r.content)
-    return response['title'], response['link']
+    plugin = config.get('wordpress', 'plugin')
+
+    if plugin == 'json-rest-api':
+        url = os.path.join(config.get('wordpress', 'url'), 'wp-json.php/posts')
+        auth = b64encode('{}:{}'.format(config.get('wordpress', 'username'),
+                                        config.get('wordpress', 'password')))
+        payload = {
+            'title': title,
+            'type': 'page',
+            'content_raw': content,
+            'status': 'publish' if publish else 'draft',
+        }
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic {}'.format(auth),
+        }
+        r = requests.post(url, data=json.dumps(payload), headers=headers)
+        response = json.loads(r.content)
+        return response['title'], response['link']
+
+    elif plugin == 'json-api':
+        # Start with fetching the nonce
+        url = os.path.join(config.get('wordpress', 'url'), 'api/get_nonce/')
+        payload = {
+            'controller': 'posts',
+            'method': 'create_post',
+        }
+        response = json.loads(requests.post(url, data=payload).content)
+        nonce = response['nonce']
+
+        # Next step is to make the post
+        url = os.path.join(config.get('wordpress', 'url'),
+                           'api/posts/create_post/')
+        payload = {
+            'title': title,
+            'type': 'page',
+            'content': content,
+            'status': 'publish' if publish else 'draft',
+            'nonce': nonce,
+            'author': config.get('wordpress', 'username'),
+            'user_password': config.get('wordpress', 'password'),
+        }
+        r = requests.post(url, data=payload)
+        response = json.loads(r.content)
+        return response['post']['title'], response['post']['url']
 
 
 def post(title, url, **kwargs):
