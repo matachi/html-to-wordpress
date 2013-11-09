@@ -9,7 +9,8 @@ License: [MIT License](LICENSE)
 Requirements
 ------------
 
-Python 2.7 with the packages Flask, beautifulsoup4 and requests. They can, for example, be installed with:
+Python 2.7 with the packages Flask, beautifulsoup4 and requests. They can, for
+example, be installed with:
 
 ```sh
 $ pip install Flask beautifulsoup4 requests
