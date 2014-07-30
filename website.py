@@ -16,7 +16,8 @@ def index():
                       request.form['url'],
                       remove_new_window_link=remove_new_window_link,
                       publish=publish,
-                      delete_links=request.form['delete_links'])
+                      delete_links=request.form['delete_links'],
+                      cookies=request.form['cookies'])
         template = render_template('posted.html', content=result[0],
                                    title=result[1], link=result[2])
         response = make_response(template)
@@ -24,6 +25,7 @@ def index():
                             'true' if remove_new_window_link else 'false')
         response.set_cookie('publish', 'true' if publish else 'false')
         response.set_cookie('delete_links', request.form['delete_links'])
+        response.set_cookie('cookies', request.form['cookies'])
         return response
 
     elif request.method == 'GET':
@@ -31,9 +33,11 @@ def index():
         remove_new_window_link = 'true' == request.cookies.get(
             'remove_new_window_link')
         delete_links = request.cookies.get('delete_links', '')
+        cookies = request.cookies.get('cookies', '')
         return render_template('index.html', publish=publish,
                                remove_new_window_link=remove_new_window_link,
-                               delete_links=delete_links)
+                               delete_links=delete_links,
+                               cookies=cookies)
 
 
 if __name__ == '__main__':
