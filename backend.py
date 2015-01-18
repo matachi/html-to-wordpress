@@ -30,7 +30,7 @@ def parse(url, **kwargs):
     soup = BeautifulSoup(urlopen(url))
 
     # Special thing for http://andersj.se
-    if getattr(kwargs, 'remove_new_window_link', False):
+    if kwargs.get('remove_new_window_link', False):
         page = url.split('/')[-1]
         for a in soup.find_all('a'):
             if page == a['href']:
@@ -46,23 +46,29 @@ def parse(url, **kwargs):
                 if filename == page_to_delete:
                     link.parent.parent.contents.remove(link.parent)
 
+    # Get the directory name of the current file
+    # If url = 'http://andersj.se/packalatt/varfor.htm', directory is set to
+    # '/packalatt'.
+    directory = os.path.dirname(urlparse(url).path)
+    # Remove initial slash character
+    if len(directory) > 0 and directory[0] == '/':
+        directory = directory[1:]
+
     # Update file urls
     files = []
     for img in soup.find_all('img'):
-        src = img['src']
+        src = os.path.join(directory, img['src'])
         img['style'] = 'width: {}px; height: {}px;'.format(img['width'],
                                                            img['height'])
         img['src'] = os.path.join(config.get('wordpress', 'url'),
-                                  'wp-content/uploads/old_site/{}'.format(
-                                      img['src']))
+                                  'wp-content/uploads/old_site/{}'.format(src))
         files.append({'old': src, 'new': img['src']})
     for a in soup.find_all('a'):
-        old = a['href']
+        old = os.path.join(directory, a['href'])
         if old.split('.')[-1] != 'pdf':
             continue
         a['href'] = os.path.join(config.get('wordpress', 'url'),
-                                 'wp-content/uploads/old_site/{}'.format(
-                                     a['href']))
+                                 'wp-content/uploads/old_site/{}'.format(old))
         files.append({'old': old, 'new': a['href']})
 
     # Get the content inside the body tag and the js scripts
@@ -71,7 +77,8 @@ def parse(url, **kwargs):
     scripts = soup.head.find_all('script')
 
     # Put the body content and scripts together
-    content = u'\n'.join([unicode(x) for x in scripts])
+    #content = u'\n'.join([unicode(x) for x in scripts])
+    content = u''
     content = unicode(content) + unicode(body_content)
     content = u'[raw]<div class="old_site">{}</div>[/raw]'.format(content)
     content = BeautifulSoup(content).prettify()
