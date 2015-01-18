@@ -174,7 +174,7 @@ def upload_files():
     ftp.quit()
 
 
-def make_wordpress_page(title, content, publish):
+def make_wordpress_page(title, content, publish, cookies):
     """Make a page on the WordPress blog.
 
     :param title: The page's title.
@@ -214,7 +214,11 @@ def make_wordpress_page(title, content, publish):
             'controller': 'posts',
             'method': 'create_post',
         }
-        response = json.loads(requests.post(url, data=payload).content)
+        headers = {
+            'Cookie': cookies,
+        }
+        response = json.loads(
+            requests.post(url, data=payload, headers=headers).content)
         nonce = response['nonce']
 
         # Next step is to make the post
@@ -229,7 +233,10 @@ def make_wordpress_page(title, content, publish):
             'author': config.get('wordpress', 'username'),
             'user_password': config.get('wordpress', 'password'),
         }
-        r = requests.post(url, data=payload)
+        headers = {
+            'Cookie': cookies,
+        }
+        r = requests.post(url, data=payload, headers=headers)
         response = json.loads(r.content)
         return response['post']['title'], response['post']['url']
 
@@ -249,8 +256,9 @@ def post(title, url, **kwargs):
     download_files(url, files)
     upload_files()
     publish = kwargs.get('publish', False)
+    cookies = kwargs.get('cookies', '')
     wordpress_title, wordpress_page_url = make_wordpress_page(title, content,
-                                                              publish)
+                                                              publish, cookies)
     return content, wordpress_title, wordpress_page_url
 
 
